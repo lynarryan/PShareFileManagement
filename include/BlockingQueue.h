@@ -92,10 +92,9 @@ void BlockingQueue<T>::push(const T& elem) {
     
     {
         std::unique_lock<std::mutex> lock(thread_safety);
-        backing_queue.push(elem);
-    }
 
-    condition.notify_one();
+        backing_queue.push(elem);
+    }    condition.notify_one();
 }
 
 template <typename T>

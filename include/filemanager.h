@@ -7,18 +7,19 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <map>
+#include <unistd.h>
 #include "Event.h"
-#include "BlockingQueue.h";
-#include "EventRegistrar.h";
+#include "BlockingQueue.h"
 using namespace std;
 class FileManager
 {
 	public:
-	FileManager();
+	FileManager(char* filePath);
 	char* checkDirectory();
-	int readMessage(Event* e);
+	int readMessage(Event& e);
 	private:
 	 int notifyResult;
 	 int dirWatch,i,length;
+	 char* path;
 };
 #endif

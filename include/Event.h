@@ -45,7 +45,9 @@ class Event {
             NODE_DISCONNECT,
             NODE_MSG_RECEIVED,
             TCP_INC_CONNECTION,
-            TCP_LISTEN_FAIL
+            TCP_LISTEN_FAIL,
+	    MSG_TO_SEND,
+	    FILE_EVENT_REC
         };
         
         /**
