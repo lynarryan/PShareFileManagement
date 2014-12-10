@@ -47,7 +47,8 @@ class Event {
             TCP_INC_CONNECTION,
             TCP_LISTEN_FAIL,
 	    MSG_TO_SEND,
-	    FILE_EVENT_REC
+	    FILE_EVENT_REC,
+	    FILE_CHANGED_MSG
         };
         
         /**

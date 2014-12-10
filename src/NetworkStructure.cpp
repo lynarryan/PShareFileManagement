@@ -462,20 +462,17 @@ void NetworkStructure::control() {
                 sender->set_tcp_port(msg->read_uint16());
 	        uint32_t msglen = msg->read_uint32();
 		std::string m (msglen,0);
-		std::cout<<msglen<<'\n';
-	        fread(&m[0], sizeof(char), msglen, msg->get_payload());
-		std::cout<<m<<'\n';
-		NetworkMessage passOn(PSHARE_FILEMANAGER_EVENT_SEND,msg->get_payload());
 		
-		std::list<Node *>::iterator i;
-		if(ancestry.size()>0 && sender->get_tcp_port() != ancestry[0]->get_tcp_port()){
-			passOn.send(ancestry[0]->get_sd());
-		}
-		for(i = children.begin(); i!= children.end();++i){
-			if(sender->get_tcp_port() != (*i)->get_tcp_port())
-			passOn.send((*i)->get_sd());
-		}
+		NetworkMessage* message = new NetworkMessage(PSHARE_FILEMANAGER_EVENT_SEND, msg->get_payload());
+		
+		if(ancestry.size()>0 && sender->get_tcp_port() == ancestry[0]->get_tcp_port()){
+			std::list<Node*>::iterator i;
+			for(i=children.begin(); i!= children.end(); i++){
+				message->send((*i)->get_sd());
+			}
 
+		} 
+	        fread(&m[0], sizeof(char), msglen, msg->get_payload());
 		Event* e = new Event(*this,&m[0],Event::Flags::FILE_EVENT_REC);
 		network_queue.push(*e);
 		delete e;
@@ -484,7 +481,34 @@ void NetworkStructure::control() {
 	delete msg;
        }else if(e.get_flag()==Event::FILE_EVENT_REC){
 		std::cout<<"Msg Received\n";
-		this->fileManager->readMessage(e);	
+		this->fileManager->readMessage(e);
+		std::cout<<"Msg parsed\n";
+	/*}else if(e.get_flag()==Event::FILE_CHANGED_MSG){
+		FILE* f = tmpfile();
+		NetworkMessage m(PSHARE_FILEMANAGER_EVENT_SEND ,f);
+		m.write((uint8_t)(terminal?1:0));
+		m.write((uint16_t)tcp_port);
+		std::list<Node *>::iterator i;
+
+		FILE* writeFile = static_cast<FILE *>(e.get_data());
+		fwrite(f,sizeof(char),sizeof(writeFile),writeFile);
+		fclose(f);
+		if(ancestry.size() > 0){
+			cout<<"Anc\n";
+			m.send(ancestry[0]->get_sd());
+		}
+		else if(siblings.size() > 0){
+			cout<<"Sib\n";
+			for(i=siblings.begin(); i!= siblings.end(); i++){
+				m.send((*i)->get_sd());
+			}	
+		}else{
+			cout<<"Child\n";
+			for(i=children.begin(); i!= children.end(); i++){
+				m.send((*i)->get_sd());
+			}
+		}
+*/
        }else if(e.get_flag() ==Event::MSG_TO_SEND){
 		FILE * f = tmpfile();
         	NetworkMessage m(PSHARE_FILEMANAGER_EVENT_SEND, f);
@@ -494,14 +518,28 @@ void NetworkStructure::control() {
 			
 		std::string toWrite = static_cast<const char*>(e.get_data());
 		m.write((uint32_t)toWrite.length());
+		std::cout<<toWrite<<'\n';
         	fwrite(&toWrite[0],sizeof(char), toWrite.length(), f);
+		
 		std::list<Node *>::iterator i;
-		if(ancestry.size()>0){
+		
+		if(ancestry.size() > 0){
+			cout<<"Anc\n";
 			m.send(ancestry[0]->get_sd());
-		}for (i = children.begin(); i != children.end(); ++i){
-                    m.send((*i)->get_sd());
 		}
-			
+		else if(siblings.size() > 0){
+			cout<<"Sib\n";
+			for(i=siblings.begin(); i!= siblings.end(); i++){
+				m.send((*i)->get_sd());
+			}	
+		}else{
+			cout<<"Child\n";
+			for(i=children.begin(); i!= children.end(); i++){
+				m.send((*i)->get_sd());
+			}
+		}
+		//fclose(f);
+					
 		std::cout<<"Sent "<<toWrite<<" " << toWrite.length() << " \n";
 	    }else{std::cout<<"Invalid Message\n";}
 	

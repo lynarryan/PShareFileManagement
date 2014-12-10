@@ -189,15 +189,26 @@ int main(int argc, char **argv) {
         return -2;
     }
 
-    char* msg;
+    char* msg;	
+    Event* msgEvent; 	
+    
     while (true) {
+
 	if(strlen(msg=manager->checkDirectory())>0){
-		Event* testEvent = (new Event(*network,msg,Event::Flags::MSG_TO_SEND));	
-		network->get_network_queue().push(*testEvent);
+		std::string temp = msg;
+	/*	if(temp.find("modFile") != std::string::npos){
+			int splitPoint = 0;
+			splitPoint= temp.find(",");
+			std::string name = temp.substr(0,splitPoint);
+			FILE* sendFile = fopen(&name[0],"r");	
+			msgEvent = (new Event(*network,sendFile,Event::Flags::FILE_CHANGED_MSG));
+		}else{*/
+			msgEvent = (new Event(*network,msg,Event::Flags::MSG_TO_SEND));	
+		//}
+		network->get_network_queue().push(*msgEvent);
 	}
-	//cout<<"Here\n";
 	
-	event_queue.front();
+	//event_queue.front();
 	}
     
     return 0;

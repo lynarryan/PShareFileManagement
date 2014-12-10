@@ -5,7 +5,7 @@ FileManager::FileManager(char* filePath)
 	this->path = filePath;
 	notifyResult = inotify_init();// new map<char*,int>();
 
-//	notifyResultFILE_PATH,inotify_init());
+	//notifyResultFILE_PATH,inotify_init());
 	i = 0;
 	length = 0;
 	if(notifyResult<0){
@@ -34,7 +34,7 @@ char* FileManager::checkDirectory(){
 		struct inotify_event *event = (struct inotify_event *) &buffer[i];
 		retVal.append(event->name);
 		retVal.append(",");
-		if(event->mask & IN_CREATE){
+		if(event->mask & IN_CREATE || event->mask & IN_MOVED_TO){
 			if(event->mask & IN_ISDIR){
 				retVal.append("mkDir");
 				
@@ -42,14 +42,17 @@ char* FileManager::checkDirectory(){
 				retVal.append("mkFile");
 				
 			}
-		}else if(event->mask & IN_DELETE){
-			if(event->mask & IN_ISDIR){
+		}else if(event->mask & IN_DELETE|| event->mask & IN_MOVED_FROM){
+			if(event->mask & IN_ISDIR ){
 				retVal.append("rmDir");
 				
 			}else{
 				retVal.append("rmFile");	
 			}
-		}else{return "";}
+		}//else if(event->mask & IN_MODIFY){
+		//		retVal.append("modFile");
+		//}
+		else{return "";}
 	i =0;
 	length =0;
 	temp = &retVal[0];
@@ -82,7 +85,7 @@ int FileManager::readMessage(Event& e){
 	}
 	else if(operation.find("mkFile") != string::npos){
 		char* fileName = &result[0];
-		FILE *f = fopen(fileName,"w");
+		FILE *f = fopen(fileName,"w+");
 		fclose(f);		
 		
 	}
@@ -95,7 +98,9 @@ int FileManager::readMessage(Event& e){
 		char*filePath = &result[0];
 		remove(filePath);
 	
-	}else{cout<<"Invalid Operation\n"; return 0;}
+	}//else{
+	//	FILE*f = fopen(
+	//}
 	return 0;
 }
 /*int main(){
